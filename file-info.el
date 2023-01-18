@@ -35,17 +35,6 @@
   :group 'file-info
   :type 'string)
 
-
-(defcustom file-info-posframe-border-color "#FF3399"
-  "Color of posframe border."
-  :group 'file-info
-  :type 'string)
-
-(defcustom file-info-posframe-background-color "#1f2335"
-  "Color of posframe border."
-  :group 'file-info
-  :type 'string)
-
 (defcustom file-info-min-properties-length 20
   "Minimal length of properties."
   :group 'file-info
@@ -89,8 +78,8 @@
       (concat text (make-string (- file-info-min-properties-length (length text)) ?\ ))
     text))
 
-(defun file-info--get-pretty-information (file-info)
-  "Get pretty information about file via FILE-INFO plist."
+(defun file-info--get-pretty-information ()
+  "Get pretty information about file."
   (concat
    "\n\n"
    (string-join
@@ -110,13 +99,6 @@
             file-info-handlers))
    "\n"))
 
-(defun file-info--render-buffer ()
-  "Render file information inside `file-info-buffer-name' buffer."
-  (let ((file-info (file-info--collect-information)))
-    (with-current-buffer (get-buffer-create file-info-buffer-name)
-      (erase-buffer)
-      (insert (file-info--get-pretty-information file-info)))))
-
 (defun file-name--get-hydra-bindings ()
   "Get hydra bindings."
   (let ((binding-functions '()))
@@ -131,30 +113,9 @@
   "Show info about file inside via hydra."
   (call-interactively
    (eval `(defhydra file-name--hydra-menu (:color pink :hint nil :exit t)
-            ,(file-info--get-pretty-information (file-info--collect-information))
+            ,(file-info--get-pretty-information)
             ,@(file-name--get-hydra-bindings)
             ("q" posframe-hide-all :color blue)))))
-
-;;;###autoload
-(defun file-info-copy-file-name ()
-  "Copy file name of current buffer to clipboard."
-  (interactive)
-  (when (buffer-file-name)
-    (kill-new (file-name-nondirectory (buffer-file-name)))))
-
-;;;###autoload
-(defun file-info-copy-full-directory-path ()
-  "Copy full path to current directory to clipboard."
-  (interactive)
-  (when (buffer-file-name)
-    (kill-new (replace-regexp-in-string " " "\\\\\  " (file-name-directory (buffer-file-name))))))
-
-;;;###autoload
-(defun file-info-copy-full-file-path ()
-  "Copy full path to current file to clipboard."
-  (interactive)
-  (when (buffer-file-name)
-    (kill-new (replace-regexp-in-string " " "\\\\\  " (buffer-file-name)))))
 
 ;;;###autoload
 (defun file-info-show ()
