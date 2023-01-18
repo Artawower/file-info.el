@@ -30,18 +30,11 @@
 (require 'hydra)
 (require 'subr-x)
 
-(setq hydra-hint-display-type 'posframe)
-
 (defcustom file-info-buffer-name "*pretty-file-info*"
   "Name of buffer for file info."
   :group 'file-info
   :type 'string)
 
-(setq hydra-posframe-show-params `(:poshandler ,file-info-posframe-poshandler
-                                               :internal-border-width 1
-                                               :internal-border-color ,file-info-posframe-border-color
-                                               :left-fringe 16
-                                               :right-fringe 16))
 
 (defcustom file-info-posframe-border-color "#FF3399"
   "Color of posframe border."
