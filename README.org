@@ -19,7 +19,7 @@ Package for quick view and copy all necessary information about current opened f
 This package could works with optional dependencies as projectile/project.el and all-the-icons.
 
 * Preview
-[[./images/file-info.png]]
+[[./images/sample.png]]
 
 * Install
 
