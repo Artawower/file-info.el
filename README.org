@@ -1,0 +1,47 @@
+:PROPERTIES:
+:ID:       file-info
+:END:
+
+#+TITLE: file-info.el
+#+html: <span class="badge-buymeacoffee">
+#+html: <a href="https://www.paypal.me/darkawower" title="Paypal" target="_blank"><img src="https://img.shields.io/badge/paypal-donate-blue.svg" alt="Buy Me A Coffee donate button" /></a>
+#+html: </span>
+#+html: <span class="badge-patreon">
+#+html: <a href="https://patreon.com/artawower" target="_blank" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-orange.svg" alt="Patreon donate button" /></a>
+#+html: </span>
+#+html: <a href="https://wakatime.com/badge/github/Artawower/file-info.el"><img src="https://wakatime.com/badge/github/Artawower/file-info.el.svg" alt="wakatime"></a>
+
+#+DESCRIPTION: Quick access to most common file information properties
+#+ID: file-info
+
+Package for quick view and copy all necessary information about current opened file.
+
+This package could works with optional dependencies as projectile/project.el and all-the-icons.
+
+* Preview
+[[./images/file-info.png]]
+
+* Install
+
+*** Requirements
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package hydra)
+(use-package browse-at-remote)
+#+END_SRC
+
+*** Straight
+#+BEGIN_SRC emacs-lisp
+(use-package file-info
+  :straight (:host github :repo "artawower/file-info.el")
+  :bind (("C-c d" . 'file-info-show))
+  :config
+  (setq hydra-hint-display-type 'posframe)
+  (setq hydra-posframe-show-params `(:poshandler posframe-poshandler-frame-center
+                                               :internal-border-width 2
+                                               :internal-border-color "#61AFEF"
+                                               :left-fringe 16
+                                               :right-fringe 16)))
+#+END_SRC
+
+
+
