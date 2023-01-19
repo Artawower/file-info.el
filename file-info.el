@@ -141,8 +141,9 @@
       (with-temp-buffer
         (vc-git-command t 0 file-name "diff" "--numstat")
         (let ((file-changes (split-string (buffer-string))))
-          (concat (propertize (nth 0 file-changes) 'face 'font-lock-string-face) "/"
-                  (propertize (nth 1 file-changes) 'face 'font-lock-keyword-face)))))))
+          (when file-changes
+            (concat (propertize (nth 0 file-changes) 'face 'font-lock-string-face) "/"
+                    (propertize (nth 1 file-changes) 'face 'font-lock-keyword-face))))))))
 
 (defun file-info--get-last-modified-date ()
   "Return last modified date."
