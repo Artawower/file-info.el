@@ -91,6 +91,7 @@
                                (:name "File mode" :handler (format-mode-line mode-name) :face font-lock-string-face :bind "m")
                                (:name "File size" :handler (file-size-human-readable (buffer-size)) :face font-lock-string-face :bind "s")
                                (:name "Last modified date" :handler (file-info--get-last-modified-date) :face font-lock-string-face :bind "u")
+                               (:name "Enabled LSP" :handler (file-name--get-active-lsp-servers) :face font-lock-string-face :bind "L")
                                (:handler (file-info--separator))
                                (:handler (file-info--get-headline "GIT") :face font-lock-comment-face)
                                (:name "Remote GIT" :handler (vc-git-repository-url (file-info--get-file-name)) :face font-lock-builtin-face :bind "r")
@@ -314,6 +315,14 @@
                     (lambda () (interactive) (kill-new copy-val)))
               binding-functions)))
     binding-functions))
+
+
+(defun file-name--get-active-lsp-servers ()
+  "Get list of active lsp servers."
+  (when (bound-and-true-p lsp-mode)
+    (string-join (mapcar (lambda (server)
+              (lsp--workspace-print server))
+            (lsp-workspaces)) ", ")))
 
 (defun file-name--show-hydra ()
   "Show info about file inside via hydra."
