@@ -71,6 +71,11 @@
   :group 'file-info
   :type 'character)
 
+(defcustom file-info--max-contributer-count 5
+  "Max count of contributors."
+  :group 'file-info
+  :type 'integer)
+
 
 (defconst file-info-handlers `(
                                (:handler (file-info--get-headline "File info") :face match)
@@ -92,7 +97,12 @@
                                (:name "Branch" :handler (file-info--get-current-branch) :face font-lock-builtin-face :bind "b")
                                (:name "Remote url" :handler (file-info--get-remote-url) :face font-lock-builtin-face :bind "R")
                                (:name "File author" :handler (file-info--get-first-commit-author) :face font-lock-builtin-face :bind "a")
-                               (:name "First commit hash" :handler (file-info--get-first-commit-hash) :face font-lock-builtin-face :bind "h")
+                               (:name "First commit hash" :handler (file-info--get-first-commit-hash) :face font-lock-builtin-face :bind "H")
+                               (:name "Contributors"
+                                      :handler (file-info--slice-list-by-length (file-info--get-all-file-contributors) file-info--max-contributer-count)
+                                      :face font-lock-builtin-face
+                                      :bind "C")
+                               (:name "Current commit hash" :handler (file-info--get-last-commit-hash) :face font-lock-builtin-face :bind "h")
                                (:name "First commit date" :handler (file-info--get-first-commit-date) :face font-lock-builtin-face :bind "t")
                                (:name "Modified/deleted lines" :handler (file-info--get-git-file-changes) :bind "w")
                                (:handler (file-info--separator))
@@ -106,8 +116,16 @@
   (let ((file-name (file-info--get-file-name)))
     (when file-name
       (with-temp-buffer
-        (vc-git-command t 0 file-name "log" "--pretty=format:%H:%an:%cr" "--reverse")
-        (split-string (car-safe (split-string (buffer-string) "\n")) ":")))))
+        (vc-git-command t 0 file-name "log" "--pretty=format|%H|%an (%ae)|%aD" "--reverse")
+        (cdr (split-string (car-safe (split-string (buffer-string) "\n")) "|"))))))
+
+(defun file-info--get-last-commit-info ()
+  "Get last commit hash and user name via VC."
+  (let ((file-name (file-info--get-file-name)))
+    (when file-name
+      (with-temp-buffer
+        (vc-git-command t 0 file-name "log" "--pretty=format|%H|%an|%cr" "-n" "1")
+        (split-string (car-safe (split-string (buffer-string) "\n")) "|")))))
 
 (defun file-info--get-first-commit-author ()
   "Return author of first commit."
@@ -118,6 +136,11 @@
   "Return hash of first commit."
   (when (buffer-file-name)
     (car (file-info--get-first-commit-info))))
+
+(defun file-info--get-last-commit-hash ()
+  "Return hash of last commit."
+  (when (buffer-file-name)
+    (car (file-info--get-last-commit-info))))
 
 (defun file-info--get-first-commit-date ()
   "Return date of first commit."
@@ -174,6 +197,27 @@
          (project-name))
         t nil))
 
+(defun file-info--get-all-file-contributors ()
+  "Return list of all file contributers sorted by commits count via VC."
+  (let ((file-name (file-info--get-file-name)))
+    (when file-name
+      (with-temp-buffer
+        (vc-git-command t 0 file-name "log" "--pretty=%ae")
+        (let ((committers (sort (mapcar (lambda (x) (cons (car x) (length x)))
+                                        (seq-group-by 'identity (butlast (split-string (buffer-string) "\n"))))
+                                (lambda (x y) (> (cdr x) (cdr y))))))
+          (mapcar (lambda (x) (format "%s (%s)\n" (car x) (cdr x))) committers))))))
+
+
+
+(defun file-info--slice-list-by-length (list length)
+  "Slice LIST by LENGTH."
+  (car (let ((result '()))
+         (while list
+           (push (seq-take list length) result)
+           (setq list (seq-drop list length)))
+         (reverse result))))
+
 (defun file-info--get-project-related-path ()
   "Get project related path."
   (when (buffer-file-name)
@@ -225,6 +269,13 @@
             (setq result (concat result (char-to-string char)))))
         result))))
 
+(defun file-info--align-list-of-items (items)
+  "Align list of value ITEMS to the right."
+  (concat (car items)
+          (string-join (mapcar (lambda (x)
+                                 (concat (make-string (+ file-info-min-properties-length (if file-info-show-binding-p 4 0)) ?\ ) x))
+                               (cdr items)))))
+
 (defun file-info--get-pretty-information ()
   "Get pretty information about file."
   (concat
@@ -237,9 +288,10 @@
               (face (plist-get file-info-handler :face))
               (bind (plist-get file-info-handler :bind))
               (prefix (plist-get file-info-handler :prefix))
-              (handler-value (if name
-                                 (file-info--split-text-by-max-length-with-new-line (eval handler) file-info-max-value-length)
-                               (eval handler))))
+              (raw-handler-value (eval handler))
+              (handler-value (cond ((listp raw-handler-value) (file-info--align-list-of-items raw-handler-value))
+                                   (name (file-info--split-text-by-max-length-with-new-line (eval handler) file-info-max-value-length))
+                                   (t raw-handler-value))))
          (when handler-value
            (if name
                (concat (when (and bind file-info-show-binding-p) (format "[%s] " (propertize bind 'face `(:foreground ,file-info-bind-color))))
@@ -255,9 +307,11 @@
   "Get hydra bindings."
   (let ((binding-functions '()))
     (dolist (file-info-handler file-info-handlers)
-      (when (plist-get file-info-handler :bind)
-        (push (list (plist-get file-info-handler :bind)
-                    (lambda () (interactive) (kill-new (eval (plist-get file-info-handler :handler)))))
+      (when-let* ((bind (plist-get file-info-handler :bind))
+                  (copy-raw-val (eval (plist-get file-info-handler :handler)))
+                  (copy-val (if (listp copy-raw-val) (string-join copy-raw-val) copy-raw-val)))
+        (push (list bind
+                    (lambda () (interactive) (kill-new copy-val)))
               binding-functions)))
     binding-functions))
 
