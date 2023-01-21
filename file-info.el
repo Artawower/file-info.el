@@ -213,7 +213,7 @@
          (projectile-project-name))
         ((fboundp 'project-name)
          (project-name))
-        t nil))
+        (t nil)))
 
 (defun file-info--get-all-file-contributors ()
   "Return list of all file contributers sorted by commits count via VC."
