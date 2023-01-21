@@ -31,25 +31,20 @@
 (require 'hydra)
 (require 'browse-at-remote)
 
-(defcustom file-info-buffer-name "*pretty-file-info*"
-  "Name of buffer for file info."
-  :group 'file-info
-  :type 'string)
-
 (defcustom file-info-min-properties-length 26
   "Minimal length of properties."
   :group 'file-info
   :type 'integer)
 
-(defcustom file-info-properties-color "#FF3399"
-  "Color of properties."
-  :group 'file-info
-  :type 'string)
+(defface file-info-properties-face
+  '((t :foreground "#FF3399"))
+  "Face for properties text."
+  :group 'file-info)
 
-(defcustom file-info-bind-color "#61AFEF"
-  "Color of properties."
-  :group 'file-info
-  :type 'string)
+(defface file-info-bind-face
+  '((t :foreground "#61AFEF"))
+  "Face for bind value text."
+  :group 'file-info)
 
 (defcustom file-info-max-value-length 80
   "Max length of value."
@@ -317,8 +312,8 @@
                                    (t raw-handler-value))))
          (when handler-value
            (if name
-               (concat (when (and bind file-info-show-binding-p) (format "[%s] " (propertize bind 'face `(:foreground ,file-info-bind-color))))
-                       (propertize (file-info--set-min-text-length (concat name ": ")) 'face `(:foreground ,file-info-properties-color))
+               (concat (when (and bind file-info-show-binding-p) (format "[%s] " (propertize bind 'face 'file-info-bind-face)))
+                       (propertize (file-info--set-min-text-length (concat name ": ")) 'face 'file-info-properties-face)
                        (when prefix (eval prefix))
                        (if face (propertize handler-value 'face face) handler-value) "\n")
              handler-value))))
