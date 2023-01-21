@@ -71,13 +71,13 @@
   :group 'file-info
   :type 'character)
 
-(defcustom file-info--max-contributer-count 5
+(defcustom file-info-max-contributers-count 5
   "Max count of contributors."
   :group 'file-info
   :type 'integer)
 
 
-(defconst file-info-handlers `(
+(defcustom file-info-handlers `(
                                (:handler (file-info--get-headline "File info") :face match)
                                (:name "File name" :prefix (file-info--file-icon) :handler (file-info--get-file-name) :face font-lock-string-face :bind "n")
                                (:name "Project name" :handler (file-info--get-project-name) :face font-lock-string-face :bind "P")
@@ -101,7 +101,7 @@
                                (:name "First commit hash" :handler (file-info--get-first-commit-hash) :face font-lock-builtin-face :bind "H")
                                (:name "Current commit hash" :handler (file-info--get-last-commit-hash) :face font-lock-builtin-face :bind "h")
                                (:name "Contributors"
-                                      :handler (file-info--slice-list-by-length (file-info--get-all-file-contributors) file-info--max-contributer-count)
+                                      :handler (file-info--slice-list-by-length (file-info--get-all-file-contributors) file-info-max-contributers-count)
                                       :face font-lock-builtin-face
                                       :bind "C")
                                (:name "First commit date" :handler (file-info--get-first-commit-date) :face font-lock-builtin-face :bind "t")
@@ -110,7 +110,10 @@
                                (:handler (file-info--get-headline "Analytics") :face font-lock-comment-face)
                                (:name "Line count" :handler (number-to-string (count-lines (point-min) (point-max))) :face font-lock-number-face :bind "l")
                                (:name "Words count" :handler (number-to-string (count-words (point-min) (point-max))) :face font-lock-number-face :bind "w")
-                               (:name "Errors/info count" :handler (file-info--get-flycheck-errors-count) :bind "e")))
+                               (:name "Errors/info count" :handler (file-info--get-flycheck-errors-count) :bind "e"))
+  "List of handlers for file info."
+  :group 'file-info
+  :type 'list)
 
 (defun file-info--get-first-commit-info ()
   "Get first commit hash and user name via VC."
