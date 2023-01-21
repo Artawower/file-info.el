@@ -4,8 +4,8 @@
 
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
-;; Package-Requires: ((emacs "24.4") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.2
+;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
+;; Version: 0.3
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@
                                (:name "File mode" :handler (format-mode-line mode-name) :face font-lock-string-face :bind "m")
                                (:name "File size" :handler (file-size-human-readable (buffer-size)) :face font-lock-string-face :bind "s")
                                (:name "Last modified date" :handler (file-info--get-last-modified-date) :face font-lock-string-face :bind "u")
-                               (:name "Enabled LSP" :handler (file-name--get-active-lsp-servers) :face font-lock-string-face :bind "L")
+                               (:name "Enabled LSP" :handler (file-info--get-active-lsp-servers) :face font-lock-string-face :bind "L")
                                (:handler (file-info--separator))
                                (:handler (file-info--get-headline "GIT") :face font-lock-comment-face)
                                (:name "Remote GIT" :handler (vc-git-repository-url (file-info--get-file-name)) :face font-lock-builtin-face :bind "r")
@@ -99,11 +99,11 @@
                                (:name "Remote url" :handler (file-info--get-remote-url) :face font-lock-builtin-face :bind "R")
                                (:name "File author" :handler (file-info--get-first-commit-author) :face font-lock-builtin-face :bind "a")
                                (:name "First commit hash" :handler (file-info--get-first-commit-hash) :face font-lock-builtin-face :bind "H")
+                               (:name "Current commit hash" :handler (file-info--get-last-commit-hash) :face font-lock-builtin-face :bind "h")
                                (:name "Contributors"
                                       :handler (file-info--slice-list-by-length (file-info--get-all-file-contributors) file-info--max-contributer-count)
                                       :face font-lock-builtin-face
                                       :bind "C")
-                               (:name "Current commit hash" :handler (file-info--get-last-commit-hash) :face font-lock-builtin-face :bind "h")
                                (:name "First commit date" :handler (file-info--get-first-commit-date) :face font-lock-builtin-face :bind "t")
                                (:name "Modified/deleted lines" :handler (file-info--get-git-file-changes) :bind "w")
                                (:handler (file-info--separator))
@@ -141,7 +141,7 @@
 (defun file-info--get-last-commit-hash ()
   "Return hash of last commit."
   (when (buffer-file-name)
-    (car (file-info--get-last-commit-info))))
+    (car (cdr (file-info--get-last-commit-info)))))
 
 (defun file-info--get-first-commit-date ()
   "Return date of first commit."
@@ -180,6 +180,25 @@
       (when (buffer-file-name)
         (browse-at-remote-get-url))
     (error "Not found")))
+
+(defun file-info--get-wakatime-spent-time-for-current-file ()
+  "Return spent time for current file from wakatime binary."
+  (when (and (executable-find "wakatime")
+             (buffer-file-name))
+    (with-temp-buffer
+      (call-process "wakatime" nil t nil "--entity" (buffer-file-name) "--today")
+      (let ((json-object-type 'hash-table)
+            (json-key-type 'string)
+            (json-array-type 'list)
+            (json (json-read)))
+        (when (and json (gethash "data" json))
+          (let ((data (gethash "data" json)))
+            (when (and data (gethash "grand_total" data))
+              (let ((grand-total (gethash "grand_total" data)))
+                (when (and grand-total (gethash "human_readable_total" grand-total))
+                  (gethash "human_readable_total" grand-total))))))))))
+  
+  
 
 (defun file-info--get-flycheck-errors-count ()
   "Return count of flycheck errors."
@@ -299,12 +318,11 @@
                        (propertize (file-info--set-min-text-length (concat name ": ")) 'face `(:foreground ,file-info-properties-color))
                        (when prefix (eval prefix))
                        (if face (propertize handler-value 'face face) handler-value) "\n")
-             handler-value
-             )) ))
+             handler-value))))
      file-info-handlers))
    "\n"))
 
-(defun file-name--get-hydra-bindings ()
+(defun file-info--get-hydra-bindings ()
   "Get hydra bindings."
   (let ((binding-functions '()))
     (dolist (file-info-handler file-info-handlers)
@@ -317,25 +335,25 @@
     binding-functions))
 
 
-(defun file-name--get-active-lsp-servers ()
+(defun file-info--get-active-lsp-servers ()
   "Get list of active lsp servers."
   (when (bound-and-true-p lsp-mode)
     (string-join (mapcar (lambda (server)
               (lsp--workspace-print server))
             (lsp-workspaces)) ", ")))
 
-(defun file-name--show-hydra ()
+(defun file-info--show-hydra ()
   "Show info about file inside via hydra."
   (call-interactively
    (eval `(defhydra file-name--hydra-menu (:hint nil :exit t)
             ,(file-info--get-pretty-information)
-            ,@(file-name--get-hydra-bindings)
+            ,@(file-info--get-hydra-bindings)
             ("q" posframe-hide-all :color blue)))))
 
 ;;;###autoload
 (defun file-info-show ()
   "Show information about current file."
-  (file-name--show-hydra)
+  (file-info--show-hydra)
   (interactive))
 
 (provide 'file-info)
