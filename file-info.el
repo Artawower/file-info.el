@@ -89,7 +89,7 @@
                                (:name "Enabled LSP" :handler (file-info--get-active-lsp-servers) :face font-lock-string-face :bind "L")
                                (:handler (file-info--separator))
                                (:handler (file-info--get-headline "GIT") :face font-lock-comment-face)
-                               (:name "Remote GIT" :handler (vc-git-repository-url (file-info--get-file-name)) :face font-lock-builtin-face :bind "r")
+                               (:name "Remote Git" :handler (file-info--get-repository-url) :face font-lock-builtin-face :bind "r")
                                (:name "Branch" :handler (file-info--get-current-branch) :face font-lock-builtin-face :bind "b")
                                (:name "Remote url" :handler (file-info--get-remote-url) :face font-lock-builtin-face :bind "R")
                                (:name "File author" :handler (file-info--get-first-commit-author) :face font-lock-builtin-face :bind "a")
@@ -112,39 +112,37 @@
 
 (defun file-info--get-first-commit-info ()
   "Get first commit hash and user name via VC."
-  (let ((file-name (file-info--get-file-name)))
-    (when file-name
-      (with-temp-buffer
-        (vc-git-command t 0 file-name "log" "--pretty=format|%H|%an (%ae)|%aD" "--reverse")
-        (cdr (split-string (car-safe (split-string (buffer-string) "\n")) "|"))))))
+  (when-let ((file-name (buffer-file-name)))
+    (with-temp-buffer
+      (vc-git-command t 0 file-name "log" "--pretty=format|%H|%an (%ae)|%aD" "--reverse")
+      (cdr (split-string (car-safe (split-string (buffer-string) "\n")) "|")))))
 
 (defun file-info--get-last-commit-info ()
   "Get last commit hash and user name via VC."
-  (let ((file-name (file-info--get-file-name)))
-    (when file-name
-      (with-temp-buffer
-        (vc-git-command t 0 file-name "log" "--pretty=format|%H|%an|%cr" "-n" "1")
-        (split-string (car-safe (split-string (buffer-string) "\n")) "|")))))
+  (when-let ((file-name (buffer-file-name)))
+    (with-temp-buffer
+      (vc-git-command t 0 file-name "log" "--pretty=format|%H|%an|%cr" "-n" "1")
+      (split-string (car-safe (split-string (buffer-string) "\n")) "|"))))
 
 (defun file-info--get-first-commit-author ()
   "Return author of first commit."
-  (when (buffer-file-name)
-    (car (cdr (file-info--get-first-commit-info)))))
+  (when-let ((file-name (buffer-file-name)) (root (file-info--get-project-root)))
+    (cadr (file-info--get-first-commit-info))))
 
 (defun file-info--get-first-commit-hash ()
   "Return hash of first commit."
-  (when (buffer-file-name)
+  (when-let ((file-name (buffer-file-name)) (root (file-info--get-project-root)))
     (car (file-info--get-first-commit-info))))
 
 (defun file-info--get-last-commit-hash ()
   "Return hash of last commit."
-  (when (buffer-file-name)
-    (car (cdr (file-info--get-last-commit-info)))))
+  (when-let ((file-name (buffer-file-name)) (root (file-info--get-project-root)))
+    (cadr (file-info--get-last-commit-info))))
 
 (defun file-info--get-first-commit-date ()
   "Return date of first commit."
-  (when (buffer-file-name)
-    (car (cdr (cdr (file-info--get-first-commit-info))))))
+  (when-let ((file-name (buffer-file-name)) (root (file-info--get-project-root)))
+    (caddr (file-info--get-first-commit-info))))
 
 (defun file-info--file-icon ()
   "Return icon for current file."
@@ -153,24 +151,30 @@
 
 (defun file-info--get-current-branch ()
   "Return current branch via VC."
-  (when (buffer-file-name)
+  (when-let ((file-name (buffer-file-name)) (root (file-info--get-project-root)))
     (vc-git--symbolic-ref (file-info--get-file-name))))
 
 (defun file-info--get-git-file-changes ()
   "Get count of modified and removed lines of code from VC."
-  (let ((file-name (file-info--get-file-name)))
-    (when (buffer-file-name)
-      (with-temp-buffer
-        (vc-git-command t 0 file-name "diff" "--numstat")
-        (let ((file-changes (split-string (buffer-string))))
-          (when file-changes
-            (concat (propertize (nth 0 file-changes) 'face 'font-lock-string-face) "/"
-                    (propertize (nth 1 file-changes) 'face 'font-lock-keyword-face))))))))
+  (when-let ((file-name (buffer-file-name)) (root (file-info--get-project-root)))
+    (with-temp-buffer
+      (vc-git-command t 0 file-name "diff" "--numstat")
+      (let ((file-changes (split-string (buffer-string))))
+        (when file-changes
+          (concat (propertize (nth 0 file-changes) 'face 'font-lock-string-face) "/"
+                  (propertize (nth 1 file-changes) 'face 'font-lock-keyword-face)))))))
 
 (defun file-info--get-last-modified-date ()
   "Return last modified date."
   (when (buffer-file-name)
     (format-time-string "%Y-%m-%d %H:%M:%S" (nth 5 (file-attributes (buffer-file-name))))))
+
+(defun file-info--get-repository-url ()
+  "Return remote repository url via VC."
+  (condition-case nil
+      (when-let ((file-name (buffer-file-name)))
+        (vc-git-repository-url file-name))
+    (error "Not found")))
 
 (defun file-info--get-remote-url ()
   "Return remote url via VC."
@@ -195,8 +199,6 @@
               (let ((grand-total (gethash "grand_total" data)))
                 (when (and grand-total (gethash "human_readable_total" grand-total))
                   (gethash "human_readable_total" grand-total))))))))))
-  
-  
 
 (defun file-info--get-flycheck-errors-count ()
   "Return count of flycheck errors."
@@ -211,20 +213,27 @@
   "Return project name."
   (cond ((fboundp 'projectile-project-name)
          (projectile-project-name))
-        ((fboundp 'project-name)
-         (project-name))
+        ((and (fboundp 'project-name) (project-current))
+         (project-name (project-current)))
+        (t nil)))
+
+(defun file-info--get-project-root ()
+  "Return project root."
+  (cond ((fboundp 'projectile-project-root)
+         (projectile-project-root))
+        ((and (fboundp 'project-root) (project-current))
+         (project-root (project-current)))
         (t nil)))
 
 (defun file-info--get-all-file-contributors ()
   "Return list of all file contributers sorted by commits count via VC."
-  (let ((file-name (file-info--get-file-name)))
-    (when file-name
-      (with-temp-buffer
-        (vc-git-command t 0 file-name "log" "--pretty=%ae")
-        (let ((committers (sort (mapcar (lambda (x) (cons (car x) (length x)))
-                                        (seq-group-by 'identity (butlast (split-string (buffer-string) "\n"))))
-                                (lambda (x y) (> (cdr x) (cdr y))))))
-          (mapcar (lambda (x) (format "%s (%s)\n" (car x) (cdr x))) committers))))))
+  (when-let ((file-name (buffer-file-name)) (root (file-info--get-project-root)))
+    (with-temp-buffer
+      (vc-git-command t 0 file-name "log" "--pretty=%ae")
+      (let ((committers (sort (mapcar (lambda (x) (cons (car x) (length x)))
+                                      (seq-group-by 'identity (butlast (split-string (buffer-string) "\n"))))
+                              (lambda (x y) (> (cdr x) (cdr y))))))
+        (mapcar (lambda (x) (format "%s (%s)\n" (car x) (cdr x))) committers)))))
 
 
 
@@ -238,10 +247,8 @@
 
 (defun file-info--get-project-related-path ()
   "Get project related path."
-  (when (buffer-file-name)
-    (let ((file-name (file-info--get-file-name)))
-      (when file-name
-        (concat "/" (replace-regexp-in-string " " "\\\\\  " (file-relative-name file-name (projectile-project-root))))))))
+  (when-let ((file-name (buffer-file-name)) (root (file-info--get-project-root)))
+    (concat "/" (replace-regexp-in-string " " "\\\\\  " (file-relative-name file-name (file-info--get-project-root))))))
 
 (defun file-info--get-headline (text)
   "Return headline for TEXT."
@@ -351,8 +358,8 @@
 ;;;###autoload
 (defun file-info-show ()
   "Show information about current file."
-  (file-info--show-hydra)
-  (interactive))
+  (interactive)
+  (file-info--show-hydra))
 
 (provide 'file-info)
 ;;; file-info.el ends here
