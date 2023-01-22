@@ -230,10 +230,11 @@
   (when-let ((file-name (buffer-file-name)) (root (file-info--get-project-root)))
     (with-temp-buffer
       (vc-git-command t 0 file-name "log" "--pretty=%ae")
-      (let ((committers (sort (mapcar (lambda (x) (cons (car x) (length x)))
+      (let* ((committers (sort (mapcar (lambda (x) (cons (car x) (length (cdr x))))
                                       (seq-group-by 'identity (butlast (split-string (buffer-string) "\n"))))
-                              (lambda (x y) (> (cdr x) (cdr y))))))
-        (mapcar (lambda (x) (format "%s (%s)\n" (car x) (cdr x))) committers)))))
+                              (lambda (x y) (> (cdr x) (cdr y)))))
+            (committers-info (mapcar (lambda (x) (format "%s (%s)\n" (car x) (cdr x))) committers)))
+        (append (butlast committers-info) (mapcar #'string-clean-whitespace (last committers-info)))))))
 
 
 
