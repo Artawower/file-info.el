@@ -343,10 +343,14 @@
 
 (defun file-info--get-active-lsp-servers ()
   "Get list of active lsp servers."
-  (when (bound-and-true-p lsp-mode)
+  (cond
+   ((bound-and-true-p lsp-mode)
     (string-join (mapcar (lambda (server)
-              (lsp--workspace-print server))
-            (lsp-workspaces)) ", ")))
+                           (lsp--workspace-print server))
+                         (lsp-workspaces)) ", "))
+   ((and (fboundp 'eglot-current-server) (fboundp 'eglot--server-info))
+    (when-let (server (eglot-current-server))
+      (plist-get (eglot--server-info server) :name)))))
 
 (defun file-info--show-hydra ()
   "Show info about file inside via hydra."
