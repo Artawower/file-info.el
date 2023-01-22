@@ -206,7 +206,7 @@
    ((bound-and-true-p flymake-mode)
      (file-info--get-flymake-errors-count))
    ((fboundp 'flycheck-count-errors)
-     (file-info--get-flymake-errors-count))
+     (file-info--get-flycheck-errors-count))
    (t nil)))
 
 (defun file-info--get-flycheck-errors-count ()
