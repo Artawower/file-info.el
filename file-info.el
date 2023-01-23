@@ -213,9 +213,9 @@
   "Return count of flycheck errors."
   (let ((flycheck-info (flycheck-count-errors flycheck-current-errors)))
     (concat
-     (propertize (number-to-string (or (cdr (assq 'error flycheck-info)) 0)) 'face 'flycheck-fringe-error)
+     (propertize (number-to-string (or (cdr (assq 'error flycheck-info)) 0)) 'face 'error)
      "/"
-     (propertize (number-to-string (or (cdr (assq 'warning flycheck-info)) 0)) 'face 'flycheck-error-list-warning))))
+     (propertize (number-to-string (or (cdr (assq 'warning flycheck-info)) 0)) 'face 'warning))))
 
 (defun file-info--get-flymake-errors-count ()
   "Return count of flymake errors."
