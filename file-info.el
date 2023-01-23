@@ -56,7 +56,7 @@
   :group 'file-info
   :type 'boolean)
 
-(defcustom file-info--include-headlines-p nil
+(defcustom file-info-include-headlines nil
   "Include headlines for groups."
   :group 'file-info
   :type 'boolean)
@@ -73,39 +73,39 @@
 
 
 (defcustom file-info-handlers `(
-                               (:handler (file-info--get-headline "File info") :face match)
-                               (:name "File name" :prefix (file-info--file-icon) :handler (file-info--get-file-name) :face font-lock-string-face :bind "n")
-                               (:name "Project name" :handler (file-info--get-project-name) :face font-lock-string-face :bind "P")
-                               (:name "Project related path" :handler (file-info--get-project-related-path) :face font-lock-string-face :bind "D")
-                               (:name "File path" :handler (buffer-file-name) :face font-lock-string-face :bind "p")
-                               (:name "File dir"
-                                      :handler (when (buffer-file-name)
-                                                 (replace-regexp-in-string " " "\\\\\  " (file-name-directory (buffer-file-name))))
-                                      :face font-lock-string-face
-                                      :bind "d")
-                               (:name "File mode" :handler (format-mode-line mode-name) :face font-lock-string-face :bind "m")
-                               (:name "File size" :handler (file-size-human-readable (buffer-size)) :face font-lock-string-face :bind "s")
-                               (:name "Last modified date" :handler (file-info--get-last-modified-date) :face font-lock-string-face :bind "u")
-                               (:name "Enabled LSP" :handler (file-info--get-active-lsp-servers) :face font-lock-string-face :bind "L")
-                               (:handler (file-info--separator))
-                               (:handler (file-info--get-headline "GIT") :face font-lock-comment-face)
-                               (:name "Remote Git" :handler (file-info--get-repository-url) :face font-lock-builtin-face :bind "r")
-                               (:name "Branch" :handler (file-info--get-current-branch) :face font-lock-builtin-face :bind "b")
-                               (:name "Remote url" :handler (file-info--get-remote-url) :face font-lock-builtin-face :bind "R")
-                               (:name "File author" :handler (file-info--get-first-commit-author) :face font-lock-builtin-face :bind "a")
-                               (:name "First commit hash" :handler (file-info--get-first-commit-hash) :face font-lock-builtin-face :bind "H")
-                               (:name "Current commit hash" :handler (file-info--get-last-commit-hash) :face font-lock-builtin-face :bind "h")
-                               (:name "Contributors"
-                                      :handler (file-info--slice-list-by-length (file-info--get-all-file-contributors) file-info-max-contributers-count)
-                                      :face font-lock-builtin-face
-                                      :bind "C")
-                               (:name "First commit date" :handler (file-info--get-first-commit-date) :face font-lock-builtin-face :bind "t")
-                               (:name "Modified/deleted lines" :handler (file-info--get-git-file-changes) :bind "w")
-                               (:handler (file-info--separator))
-                               (:handler (file-info--get-headline "Analytics") :face font-lock-comment-face)
-                               (:name "Line count" :handler (number-to-string (count-lines (point-min) (point-max))) :face font-lock-number-face :bind "l")
-                               (:name "Words count" :handler (number-to-string (count-words (point-min) (point-max))) :face font-lock-number-face :bind "w")
-                               (:name "Errors/info count" :handler (file-info--get-errors-count) :bind "e"))
+                                (:handler (file-info--get-headline "File info") :face match)
+                                (:name "File name" :prefix (file-info--file-icon) :handler (file-info--get-file-name) :face font-lock-string-face :bind "n")
+                                (:name "Project name" :handler (file-info--get-project-name) :face font-lock-string-face :bind "P")
+                                (:name "Project related path" :handler (file-info--get-project-related-path) :face font-lock-string-face :bind "D")
+                                (:name "File path" :handler (buffer-file-name) :face font-lock-string-face :bind "p")
+                                (:name "File dir"
+                                       :handler (when (buffer-file-name)
+                                                  (replace-regexp-in-string " " "\\\\\  " (file-name-directory (buffer-file-name))))
+                                       :face font-lock-string-face
+                                       :bind "d")
+                                (:name "File mode" :handler (format-mode-line mode-name) :face font-lock-string-face :bind "m")
+                                (:name "File size" :handler (file-size-human-readable (buffer-size)) :face font-lock-string-face :bind "s")
+                                (:name "Last modified date" :handler (file-info--get-last-modified-date) :face font-lock-string-face :bind "u")
+                                (:name "Enabled LSP" :handler (file-info--get-active-lsp-servers) :face font-lock-string-face :bind "L")
+                                (:handler (file-info--separator))
+                                (:handler (file-info--get-headline "GIT") :face font-lock-comment-face)
+                                (:name "Remote Git" :handler (file-info--get-repository-url) :face font-lock-builtin-face :bind "r")
+                                (:name "Branch" :handler (file-info--get-current-branch) :face font-lock-builtin-face :bind "b")
+                                (:name "Remote url" :handler (file-info--get-remote-url) :face font-lock-builtin-face :bind "R")
+                                (:name "File author" :handler (file-info--get-first-commit-author) :face font-lock-builtin-face :bind "a")
+                                (:name "First commit hash" :handler (file-info--get-first-commit-hash) :face font-lock-builtin-face :bind "H")
+                                (:name "Current commit hash" :handler (file-info--get-last-commit-hash) :face font-lock-builtin-face :bind "h")
+                                (:name "Contributors"
+                                       :handler (file-info--slice-list-by-length (file-info--get-all-file-contributors) file-info-max-contributers-count)
+                                       :face font-lock-builtin-face
+                                       :bind "C")
+                                (:name "First commit date" :handler (file-info--get-first-commit-date) :face font-lock-builtin-face :bind "t")
+                                (:name "Modified/deleted lines" :handler (file-info--get-git-file-changes) :bind "w")
+                                (:handler (file-info--separator))
+                                (:handler (file-info--get-headline "Analytics") :face font-lock-comment-face)
+                                (:name "Line count" :handler (number-to-string (count-lines (point-min) (point-max))) :face font-lock-number-face :bind "l")
+                                (:name "Words count" :handler (number-to-string (count-words (point-min) (point-max))) :face font-lock-number-face :bind "w")
+                                (:name "Errors/info count" :handler (file-info--get-errors-count) :bind "e"))
   "List of handlers for file info."
   :group 'file-info
   :type 'list)
@@ -167,7 +167,7 @@
 (defun file-info--get-last-modified-date ()
   "Return last modified date."
   (when (buffer-file-name)
-    (format-time-string "%Y-%m-%d %H:%M:%S" (nth 5 (file-attributes (buffer-file-name))))))
+    (format-time-string "%F %T" (nth 5 (file-attributes (buffer-file-name))))))
 
 (defun file-info--get-repository-url ()
   "Return remote repository url via VC."
@@ -204,14 +204,16 @@
   "Return count of flymake/flycheck errors."
   (cond
    ((bound-and-true-p flymake-mode)
-     (file-info--get-flymake-errors-count))
-   ((fboundp 'flycheck-count-errors)
-     (file-info--get-flycheck-errors-count))
+    (file-info--get-flymake-errors-count))
+   ((bound-and-true-p flycheck-mode)
+    (file-info--get-flycheck-errors-count))
    (t nil)))
 
 (defun file-info--get-flycheck-errors-count ()
   "Return count of flycheck errors."
-  (let ((flycheck-info (flycheck-count-errors flycheck-current-errors)))
+  (when-let ((flycheck-info (and (fboundp 'flycheck-count-errors)
+                                 (boundp 'flycheck-current-errors)
+                                 (flycheck-count-errors flycheck-current-errors))))
     (concat
      (propertize (number-to-string (or (cdr (assq 'error flycheck-info)) 0)) 'face 'error)
      "/"
@@ -219,8 +221,8 @@
 
 (defun file-info--get-flymake-errors-count ()
   "Return count of flymake errors."
-  (let ((flymake-error-counter (flymake--mode-line-counter :error t))
-        (flymake-warning-counter (flymake--mode-line-counter :warning t)))
+  (when-let* ((flymake-error-counter (and (fboundp 'flymake--mode-line-counter) (flymake--mode-line-counter :error t)))
+              (flymake-warning-counter (and (fboundp 'flymake--mode-line-counter) (flymake--mode-line-counter :warning t))))
     (concat
      (propertize (nth 1 (cadr flymake-error-counter)) 'face 'error)
      "/"
@@ -248,9 +250,9 @@
     (with-temp-buffer
       (vc-git-command t 0 file-name "log" "--pretty=%ae")
       (let* ((committers (sort (mapcar (lambda (x) (cons (car x) (length (cdr x))))
-                                      (seq-group-by 'identity (butlast (split-string (buffer-string) "\n"))))
-                              (lambda (x y) (> (cdr x) (cdr y)))))
-            (committers-info (mapcar (lambda (x) (format "%s (%s)\n" (car x) (cdr x))) committers)))
+                                       (seq-group-by 'identity (butlast (split-string (buffer-string) "\n"))))
+                               (lambda (x y) (> (cdr x) (cdr y)))))
+             (committers-info (mapcar (lambda (x) (format "%s (%s)\n" (car x) (cdr x))) committers)))
         (append (butlast committers-info) (mapcar #'string-clean-whitespace (last committers-info)))))))
 
 
@@ -270,7 +272,7 @@
 
 (defun file-info--get-headline (text)
   "Return headline for TEXT."
-  (when file-info--include-headlines-p
+  (when file-info-include-headlines
     (let* ((max-length (+ file-info-max-value-length file-info-min-properties-length (if file-info-show-binding-p 4 0) 2))
            (left-right-length (/ (- max-length (length text)) 2)))
       (concat (make-string left-right-length file-info-headline-underline-symbol)
@@ -361,7 +363,7 @@
 (defun file-info--get-active-lsp-servers ()
   "Get list of active lsp servers."
   (cond
-   ((bound-and-true-p lsp-mode)
+   ((and (bound-and-true-p lsp-mode) (fboundp 'lsp-workspaces) (fboundp 'lsp--workspace-print))
     (string-join (mapcar (lambda (server)
                            (lsp--workspace-print server))
                          (lsp-workspaces)) ", "))

@@ -10,6 +10,7 @@
 #+html: <a href="https://patreon.com/artawower" target="_blank" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-orange.svg" alt="Patreon donate button" /></a>
 #+html: </span>
 #+html: <a href="https://wakatime.com/badge/github/Artawower/file-info.el"><img src="https://wakatime.com/badge/github/Artawower/file-info.el.svg" alt="wakatime"></a>
+#+html: <a href="https://github.com/artawower/file-info.el/actions/workflows/melpazoid.yml/badge.svg"><img src="https://github.com/artawower/file-info.el/actions/workflows/melpazoid.yml/badge.svg" alt="ci" /></a>
 
 #+DESCRIPTION: Quick access to most common file information properties
 #+ID: file-info
