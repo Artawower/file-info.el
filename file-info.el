@@ -105,7 +105,7 @@
                                (:handler (file-info--get-headline "Analytics") :face font-lock-comment-face)
                                (:name "Line count" :handler (number-to-string (count-lines (point-min) (point-max))) :face font-lock-number-face :bind "l")
                                (:name "Words count" :handler (number-to-string (count-words (point-min) (point-max))) :face font-lock-number-face :bind "w")
-                               (:name "Errors/info count" :handler (file-info--get-flycheck-errors-count) :bind "e"))
+                               (:name "Errors/info count" :handler (file-info--get-errors-count) :bind "e"))
   "List of handlers for file info."
   :group 'file-info
   :type 'list)
@@ -200,14 +200,31 @@
                 (when (and grand-total (gethash "human_readable_total" grand-total))
                   (gethash "human_readable_total" grand-total))))))))))
 
+(defun file-info--get-errors-count ()
+  "Return count of flymake/flycheck errors."
+  (cond
+   ((bound-and-true-p flymake-mode)
+     (file-info--get-flymake-errors-count))
+   ((fboundp 'flycheck-count-errors)
+     (file-info--get-flycheck-errors-count))
+   (t nil)))
+
 (defun file-info--get-flycheck-errors-count ()
   "Return count of flycheck errors."
-  (when (fboundp 'flycheck-count-errors)
-    (let ((flycheck-info (flycheck-count-errors flycheck-current-errors)))
-      (concat
-       (propertize (number-to-string (or (cdr (assq 'error flycheck-info)) 0)) 'face 'flycheck-fringe-error)
-       "/"
-       (propertize (number-to-string (or (cdr (assq 'warning flycheck-info)) 0)) 'face 'flycheck-error-list-warning)))))
+  (let ((flycheck-info (flycheck-count-errors flycheck-current-errors)))
+    (concat
+     (propertize (number-to-string (or (cdr (assq 'error flycheck-info)) 0)) 'face 'error)
+     "/"
+     (propertize (number-to-string (or (cdr (assq 'warning flycheck-info)) 0)) 'face 'warning))))
+
+(defun file-info--get-flymake-errors-count ()
+  "Return count of flymake errors."
+  (let ((flymake-error-counter (flymake--mode-line-counter :error t))
+        (flymake-warning-counter (flymake--mode-line-counter :warning t)))
+    (concat
+     (propertize (nth 1 (cadr flymake-error-counter)) 'face 'error)
+     "/"
+     (propertize (nth 1 (cadr flymake-warning-counter)) 'face 'warning))))
 
 (defun file-info--get-project-name ()
   "Return project name."
