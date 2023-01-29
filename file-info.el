@@ -297,30 +297,19 @@
         (browse-at-remote-get-url))
     (error "Not found")))
 
-(defun file-info--get-wakatime-spent-time-for-current-file ()
+(defun file-info--get-wakatime-spent-time ()
   "Return spent time for current file from wakatime binary."
-  (when (and (executable-find "wakatime") (buffer-file-name))
+  (when-let ((file-name (buffer-file-name))
+             (executable (executable-find "wakatime")))
     (with-temp-buffer
       (call-process "wakatime"
                     nil
                     t
                     nil
                     "--entity"
-                    (buffer-file-name)
+                    file-name
                     "--today")
-      (let ((json-object-type 'hash-table)
-            (json-key-type 'string)
-            (json-array-type 'list)
-            (json (json-read)))
-        (when (and json (gethash "data" json))
-          (let ((data (gethash "data" json)))
-            (when (and data (gethash "grand_total" data))
-              (let ((grand-total (gethash "grand_total" data)))
-                (when (and grand-total
-                           (gethash
-                            "human_readable_total" grand-total))
-                  (gethash
-                   "human_readable_total" grand-total))))))))))
+      (buffer-string))))
 
 (defun file-info--get-errors-count ()
   "Return count of flymake/flycheck errors."
