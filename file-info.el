@@ -27,7 +27,8 @@
 
 ;;; Code:
 
-(require 'subr-x)
+(eval-when-compile
+  (require 'subr-x))
 (require 'hydra)
 (require 'browse-at-remote)
 
