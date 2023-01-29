@@ -522,7 +522,7 @@
                   (eval handler) file-info-max-value-length))
                 (t
                  raw-handler-value))))
-         (when handler-value
+         (when (and handler-value (not (string= handler-value "")))
            (if name
                (concat
                 (when (and bind file-info-show-binding-p)
