@@ -82,20 +82,24 @@
     (:name
      "Project name"
      :handler (file-info--get-project-name)
+     :cache t
      :face font-lock-string-face
      :bind "P")
     (:name
      "Project related path"
      :handler (file-info--get-project-related-path)
+     :cache t
      :face font-lock-string-face
      :bind "D")
     (:name
      "File path"
      :handler (buffer-file-name)
+     :cache t
      :face font-lock-string-face
      :bind "p")
     (:name
      "File dir"
+     :cache t
      :handler
      (when (buffer-file-name)
        (replace-regexp-in-string
@@ -130,6 +134,7 @@
     (:name
      "Remote Git"
      :handler (file-info--get-repository-url)
+     :cache t
      :face font-lock-builtin-face
      :bind "r")
     (:name
@@ -140,16 +145,19 @@
     (:name
      "Remote url"
      :handler (file-info--get-remote-url)
+     :cache t
      :face font-lock-builtin-face
      :bind "R")
     (:name
      "File author"
      :handler (file-info--get-first-commit-author)
+     :cache t
      :face font-lock-builtin-face
      :bind "a")
     (:name
      "First commit hash"
      :handler (file-info--get-first-commit-hash)
+     :cache t
      :face font-lock-builtin-face
      :bind "H")
     (:name
@@ -169,6 +177,7 @@
      "First commit date"
      :handler (file-info--get-first-commit-date)
      :face font-lock-builtin-face
+     :cache t
      :bind "t")
     (:name
      "Modified/deleted lines"
@@ -195,6 +204,10 @@
   "List of handlers for file info."
   :group 'file-info
   :type 'list)
+
+
+(defvar-local file-info--cache '()
+  "Cache for file info.")
 
 (defun file-info--get-first-commit-info ()
   "Get first commit hash and user name via VC."
@@ -511,17 +524,23 @@
               (handler (plist-get file-info-handler :handler))
               (face (plist-get file-info-handler :face))
               (bind (plist-get file-info-handler :bind))
+              (cache-p (plist-get file-info-handler :cache))
               (prefix (plist-get file-info-handler :prefix))
-              (raw-handler-value (eval handler))
+              (cached-value (cdr-safe (assoc name file-info--cache)))
+              (raw-handler-value (or cached-value (eval handler)))
               (handler-value
                (cond
                 ((listp raw-handler-value)
                  (file-info--align-list-of-items raw-handler-value))
                 (name
                  (file-info--split-text-by-max-length-with-new-line
-                  (eval handler) file-info-max-value-length))
+                  raw-handler-value file-info-max-value-length))
                 (t
                  raw-handler-value))))
+
+         (when (and (not cached-value) cache-p)
+           (add-to-list 'file-info--cache (cons name raw-handler-value)))
+
          (when (and handler-value (not (string= handler-value "")))
            (if name
                (concat
@@ -548,8 +567,10 @@
   (let ((binding-functions '()))
     (dolist (file-info-handler file-info-handlers)
       (when-let* ((bind (plist-get file-info-handler :bind))
+                  (name (plist-get file-info-handler :name))
                   (copy-raw-val
-                   (eval (plist-get file-info-handler :handler)))
+                   (eval (or (cdr-safe (assoc name file-info--cache))
+                             (plist-get file-info-handler :handler))))
                   (copy-val
                    (if (listp copy-raw-val)
                        (string-join copy-raw-val)
