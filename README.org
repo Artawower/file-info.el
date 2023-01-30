@@ -11,6 +11,10 @@
 #+html: </span>
 #+html: <a href="https://wakatime.com/badge/github/Artawower/file-info.el"><img src="https://wakatime.com/badge/github/Artawower/file-info.el.svg" alt="wakatime"></a>
 #+html: <a href="https://github.com/artawower/file-info.el/actions/workflows/melpazoid.yml/badge.svg"><img src="https://github.com/artawower/file-info.el/actions/workflows/melpazoid.yml/badge.svg" alt="ci" /></a>
+#+html: <a href="https://melpa.org/#/file-info"><img alt="MELPA" src="https://melpa.org/packages/file-info-badge.svg"/></a>
+
+
+ 
 
 #+DESCRIPTION: Quick access to most common file information properties
 #+ID: file-info
@@ -30,6 +34,19 @@ This package could works with optional dependencies as projectile/project.el and
 (use-package browse-at-remote)
 #+END_SRC
 
+*** Melpa
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package file-info
+  :ensure t
+  :bind (("C-c d" . 'file-info-show))
+  :config
+  (setq hydra-hint-display-type 'posframe)
+  (setq hydra-posframe-show-params `(:poshandler posframe-poshandler-frame-center
+                                               :internal-border-width 2
+                                               :internal-border-color "#61AFEF"
+                                               :left-fringe 16
+                                               :right-fringe 16)))
+#+END_SRC
 *** Straight
 #+BEGIN_SRC emacs-lisp
 (use-package file-info
