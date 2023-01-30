@@ -21,9 +21,9 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; Show pretty information about current opened file.
-;; You can copy any information via hydra
-;;
+;; Show pretty information about the currently opened file.  Version control
+;; details are available when the file is part of a git repository.  You can
+;; quickly copy any information via a hydra.
 
 ;;; Code:
 
