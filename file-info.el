@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.5
+;; Version: 0.5.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -374,8 +374,7 @@
     (projectile-project-name))
    ((and (fboundp 'project-name) (project-current))
     (project-name (project-current)))
-   (t
-    nil)))
+   t nil))
 
 (defun file-info--get-project-root ()
   "Return project root."
