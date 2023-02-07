@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.5.1
+;; Version: 0.5.2
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -259,12 +259,12 @@
 
 (defun file-info--file-icon ()
   "Return icon for current file."
-  (when (fboundp 'all-the-icons-icon-for-mode)
+  (when-let ((icons-available-p (fboundp 'all-the-icons-icon-for-mode))
+             (icon-for-mode (all-the-icons-icon-for-mode major-mode :height 1.0 :v-adjust -0.05))
+             (icon-exist-p (stringp icon-for-mode)))
+
     (concat
-     (all-the-icons-icon-for-mode
-      major-mode
-      :height 1.0
-      :v-adjust -0.05)
+     icon-for-mode
      " ")))
 
 (defun file-info--get-current-branch ()
@@ -374,7 +374,7 @@
     (projectile-project-name))
    ((and (fboundp 'project-name) (project-current))
     (project-name (project-current)))
-   t nil))
+   (t nil)))
 
 (defun file-info--get-project-root ()
   "Return project root."
