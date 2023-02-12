@@ -34,6 +34,14 @@ This package could works with optional dependencies as projectile/project.el and
 (use-package browse-at-remote)
 #+END_SRC
 
+Optional dependencies:
+
+For showing information as a popup window you need to install the posframe package.
+
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package posframe)
+#+END_SRC
+
 *** Melpa
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package file-info
