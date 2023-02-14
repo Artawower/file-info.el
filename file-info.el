@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.5.2
+;; Version: 0.5.3
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -209,9 +209,13 @@
 (defvar-local file-info--cache '()
   "Cache for file info.")
 
+(defvar-local file-info--git-p nil
+  "Is buffer inside git repository.")
+
 (defun file-info--get-first-commit-info ()
   "Get first commit hash and user name via VC."
-  (when-let ((file-name (buffer-file-name)))
+  (when-let ((git-p file-info--git-p)
+             (file-name (buffer-file-name)))
     (with-temp-buffer
       (vc-git-command
        t
@@ -226,7 +230,8 @@
 
 (defun file-info--get-last-commit-info ()
   "Get last commit hash and user name via VC."
-  (when-let ((file-name (buffer-file-name)))
+  (when-let ((git-p file-info--git-p)
+             (file-name (buffer-file-name)))
     (with-temp-buffer
       (vc-git-command
        t 0 file-name "log" "--pretty=format|%H|%an|%cr" "-n" "1")
@@ -269,13 +274,15 @@
 
 (defun file-info--get-current-branch ()
   "Return current branch via VC."
-  (when-let ((file-name (buffer-file-name))
+  (when-let ((git-p file-info--git-p)
+             (file-name (buffer-file-name))
              (root (file-info--get-project-root)))
     (vc-git--symbolic-ref (file-info--get-file-name))))
 
 (defun file-info--get-git-file-changes ()
   "Get count of modified and removed lines of code from VC."
-  (when-let ((file-name (buffer-file-name))
+  (when-let ((git-p file-info--git-p)
+             (file-name (buffer-file-name))
              (root (file-info--get-project-root)))
     (with-temp-buffer
       (vc-git-command t 0 file-name "diff" "--numstat")
@@ -388,7 +395,8 @@
 
 (defun file-info--get-all-file-contributors ()
   "Return list of all file contributers sorted by commits count via VC."
-  (when-let ((file-name (buffer-file-name))
+  (when-let ((git-p file-info--git-p)
+             (file-name (buffer-file-name))
              (root (file-info--get-project-root)))
     (with-temp-buffer
       (vc-git-command t 0 file-name "log" "--pretty=%ae")
@@ -514,6 +522,7 @@
 
 (defun file-info--get-pretty-information ()
   "Get pretty information about file."
+  (file-info--prepare-data)
   (concat
    "\n\n"
    (string-join
@@ -561,6 +570,11 @@
      file-info-handlers))
    "\n"))
 
+(defun file-info--prepare-data ()
+  "Prepare local buffer data with caching."
+  (when (and (buffer-file-name) (not file-info--git-p))
+    (setq file-info--git-p (vc-git-root (buffer-file-name)))))
+
 (defun file-info--get-hydra-bindings ()
   "Get hydra bindings."
   (let ((binding-functions '()))
@@ -605,12 +619,12 @@
   (call-interactively
    (eval
     `(defhydra
-      file-name--hydra-menu
-      (:hint nil :exit t)
-      ,(file-info--get-pretty-information)
-      ,@
-      (file-info--get-hydra-bindings)
-      ("q" posframe-hide-all :color blue)))))
+       file-name--hydra-menu
+       (:hint nil :exit t)
+       ,(file-info--get-pretty-information)
+       ,@
+       (file-info--get-hydra-bindings)
+       ("q" posframe-hide-all :color blue)))))
 
 ;;;###autoload
 (defun file-info-show ()
