@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.5.3
+;; Version: 0.6.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -189,7 +189,7 @@
      :face font-lock-comment-face)
     (:name
      "Line count"
-     :handler (number-to-string (count-lines (point-min) (point-max)))
+     :handler (format "%s/%s" (line-number-at-pos) (count-lines (point-min) (point-max)))
      :face font-lock-number-face
      :bind "l")
     (:name
@@ -200,7 +200,11 @@
     (:name
      "Errors/info count"
      :handler (file-info--get-errors-count)
-     :bind "e"))
+     :bind "e")
+    (:name "Coding time"
+     :handler (when (boundp wakatime-ui-mode) wakatime-ui-current-session-text)
+     :face font-lock-escape-face
+     :bind "T"))
   "List of handlers for file info."
   :group 'file-info
   :type 'list)
