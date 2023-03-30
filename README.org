@@ -41,6 +41,11 @@ For showing information as a popup window you need to install the posframe packa
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package posframe)
 #+END_SRC
+*** Optional dependencies
+This project is fully compatible with
+- [[https://github.com/Artawower/wakatime-ui.el][wakatime-ui]]
+- [[https://github.com/joaotavora/eglot][eglot]]/[[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]
+- [[https://github.com/bbatsov/projectile][projectile]]/[[https://github.com/emacs-mirror/emacs/blob/master/lisp/progmodes/project.el][project.el]] 
 
 *** Melpa
 #+BEGIN_SRC emacs-lisp :results silent
