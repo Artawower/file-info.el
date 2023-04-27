@@ -202,7 +202,7 @@
      :handler (file-info--get-errors-count)
      :bind "e")
     (:name "Coding time"
-     :handler (when (boundp wakatime-ui-mode) wakatime-ui-current-session-text)
+     :handler (when (boundp 'wakatime-ui-mode) wakatime-ui-current-session-text)
      :face font-lock-escape-face
      :bind "T"))
   "List of handlers for file info."
