@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.6.0
+;; Version: 0.6.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -437,7 +437,6 @@
   (when-let ((file-name (buffer-file-name))
              (root (file-info--get-project-root)))
     (concat
-     "/"
      (replace-regexp-in-string
       " "
       "\\\\\  "
