@@ -365,10 +365,10 @@
   "Return count of flymake errors."
   (when-let* ((flymake-error-counter
                (and (fboundp 'flymake--mode-line-counter)
-                    (flymake--mode-line-counter :error t)))
+                    (flymake--mode-line-counter :error)))
               (flymake-warning-counter
                (and (fboundp 'flymake--mode-line-counter)
-                    (flymake--mode-line-counter :warning t))))
+                    (flymake--mode-line-counter :warning))))
     (concat
      (propertize (nth 1 (cadr flymake-error-counter))
                  'face
