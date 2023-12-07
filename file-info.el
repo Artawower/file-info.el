@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.6.2
+;; Version: 0.7.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -187,6 +187,11 @@
     (:handler
      (file-info--get-headline "Analytics")
      :face font-lock-comment-face)
+    (:name
+     "Selection range"
+     :bind "A"
+     :handler (when (use-region-p)  (format "%s-%s (%s)" (line-number-at-pos (region-beginning)) (line-number-at-pos (region-end)) (count-lines (region-beginning) (region-end))))
+     :face font-lock-number-face)
     (:name
      "Line count"
      :handler (format "%s/%s" (line-number-at-pos) (count-lines (point-min) (point-max)))
