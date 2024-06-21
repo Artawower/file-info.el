@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.7.0
+;; Version: 0.7.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -138,6 +138,12 @@
      :face font-lock-builtin-face
      :bind "r")
     (:name
+     "Last commit message"
+     :handler (file-info--get-last-commit-message)
+     :cache t
+     :face font-lock-builtin-face
+     :bind "g")
+    (:name
      "Branch"
      :handler (file-info--get-current-branch)
      :face font-lock-builtin-face
@@ -236,6 +242,11 @@
       (cdr
        (split-string (car-safe (split-string (buffer-string) "\n"))
                      "|")))))
+
+(defun file-info--get-last-commit-message ()
+  "Get the last commit message for the entire Git repository."
+  (shell-command-to-string "git log -1 --pretty=format:%s"))
+
 
 (defun file-info--get-last-commit-info ()
   "Get last commit hash and user name via VC."
