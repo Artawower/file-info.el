@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.7.1
+;; Version: 0.8.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -208,6 +208,10 @@
      :handler (number-to-string (count-words (point-min) (point-max)))
      :face font-lock-number-face
      :bind "w")
+    (:name "Approx tokens count"
+           :handler (file-info--approx-token-count-buffer)
+           :face font-lock-number-face
+           :bind "K")
     (:name
      "Errors/info count"
      :handler (file-info--get-errors-count)
@@ -632,6 +636,26 @@
     (when-let (server
                (eglot-current-server))
       (plist-get (eglot--server-info server) :name)))))
+
+
+(defun file-info--abbrev-number (n)
+  "Return human-readable abbreviation for integer N (e.g., 90000 => \"90k\")."
+  (let ((s (file-size-human-readable n t))) ; SI units (1000-base)
+    (replace-regexp-in-string "B\\'" "" s)))
+
+(defun file-info--approx-token-count (beg end)
+  "Rough estimate: ~1 token per 4 characters from BEG to END."
+  (interactive "r")
+  (let* ((len (- end beg))
+         (approx (ceiling (/ (float len) 4.0))))
+    (message "≈ %s tokens (chars: %s; rule: ~1 token / 4 chars)"
+             (file-info--abbrev-number approx)
+             (file-info--abbrev-number len))))
+
+(defun file-info--approx-token-count-buffer ()
+  "Approximate token count for the whole buffer."
+  (interactive)
+  (file-info--approx-token-count (point-min) (point-max)))
 
 (defun file-info--show-hydra ()
   "Show info about file inside via hydra."
