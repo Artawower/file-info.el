@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.8.0
+;; Version: 0.9.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -286,15 +286,18 @@
              (root (file-info--get-project-root)))
     (caddr (file-info--get-first-commit-info))))
 
-(defun file-info--file-icon ()
-  "Return icon for current file."
-  (when-let ((icons-available-p (fboundp 'all-the-icons-icon-for-mode))
-             (icon-for-mode (all-the-icons-icon-for-mode major-mode :height 1.0 :v-adjust -0.05))
-             (icon-exist-p (stringp icon-for-mode)))
+(defun file-info--get-icon ()
+  "Get icon for current major mode."
+  (or (and (fboundp 'nerd-icons-icon-for-mode)
+           (nerd-icons-icon-for-mode major-mode))
+      (and (fboundp 'all-the-icons-icon-for-mode)
+           (all-the-icons-icon-for-mode major-mode :height 1.0 :v-adjust -0.05))))
 
-    (concat
-     icon-for-mode
-     " ")))
+(defun file-info--file-icon ()
+  "Return formatted icon for current file."
+  (let ((icon (file-info--get-icon)))
+    (or (and (stringp icon) (concat icon " "))
+        "")))
 
 (defun file-info--get-current-branch ()
   "Return current branch via VC."
