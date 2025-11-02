@@ -651,9 +651,9 @@
   (interactive "r")
   (let* ((len (- end beg))
          (approx (ceiling (/ (float len) 4.0))))
-    (message "≈ %s tokens (chars: %s; rule: ~1 token / 4 chars)"
-             (file-info--abbrev-number approx)
-             (file-info--abbrev-number len))))
+    (format "≈ %s tokens (chars: %s; rule: ~1 token / 4 chars)"
+            (file-info--abbrev-number approx)
+            (file-info--abbrev-number len))))
 
 (defun file-info--approx-token-count-buffer ()
   "Approximate token count for the whole buffer."
