@@ -657,6 +657,7 @@
             (file-info--abbrev-number len)
             "; rule: ~1 token / 4 chars)")))
 
+
 (defun file-info--approx-token-count-buffer ()
   "Approximate token count for the whole buffer."
   (interactive)
