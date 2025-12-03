@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.9.1
+;; Version: 0.9.2
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -241,7 +241,7 @@
        0
        file-name
        "log"
-       "--pretty=format|%H|%an (%ae)|%aD"
+       "--pretty=format:%H|%an (%ae)|%aD"
        "--reverse")
       (cdr
        (split-string (car-safe (split-string (buffer-string) "\n"))
@@ -258,7 +258,7 @@
              (file-name (buffer-file-name)))
     (with-temp-buffer
       (vc-git-command
-       t 0 file-name "log" "--pretty=format|%H|%an|%cr" "-n" "1")
+       t 0 file-name "log" "--pretty=format:%H|%an|%cr" "-n" "1")
       (split-string (car-safe (split-string (buffer-string) "\n"))
                     "|"))))
 
@@ -561,7 +561,12 @@
               (cache-p (plist-get file-info-handler :cache))
               (prefix (plist-get file-info-handler :prefix))
               (cached-value (cdr-safe (assoc name file-info--cache)))
-              (raw-handler-value (or cached-value (eval handler)))
+              (raw-handler-value (or cached-value
+                                     (condition-case-unless-debug err
+                                         (eval handler)
+                                       (t
+                                        (message "file-info: %s handler error: %s" (or name "unknown") err)
+                                        nil))))
               (handler-value
                (cond
                 ((listp raw-handler-value)
@@ -608,8 +613,10 @@
       (when-let* ((bind (plist-get file-info-handler :bind))
                   (name (plist-get file-info-handler :name))
                   (copy-raw-val
-                   (eval (or (cdr-safe (assoc name file-info--cache))
-                             (plist-get file-info-handler :handler))))
+                   (or (cdr-safe (assoc name file-info--cache))
+                       (condition-case-unless-debug nil
+                           (eval (plist-get file-info-handler :handler))
+                         (t nil))))
                   (copy-val
                    (if (listp copy-raw-val)
                        (string-join copy-raw-val)
