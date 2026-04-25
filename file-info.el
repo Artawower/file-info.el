@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.9.2
+;; Version: 0.9.3
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -85,6 +85,12 @@
      :cache t
      :face font-lock-string-face
      :bind "P")
+    (:name
+     "Tab name"
+     :handler (file-info--get-tab-name)
+     :cache t
+     :face font-lock-string-face
+     :bind "B")
     (:name
      "Project related path"
      :handler (file-info--get-project-related-path)
@@ -409,6 +415,11 @@
    ((and (fboundp 'project-name) (project-current))
     (project-name (project-current)))
    (t nil)))
+
+(defun file-info--get-tab-name ()
+  "Return current tab-bar tab name."
+  (when (fboundp 'tab-bar--current-tab)
+    (alist-get 'name (tab-bar--current-tab))))
 
 (defun file-info--get-project-root ()
   "Return project root."
