@@ -5,7 +5,7 @@
 ;; Author: Artur Yaroshenko <artawower@protonmail.com>
 ;; URL: https://github.com/artawower/file-info.el
 ;; Package-Requires: ((emacs "28.1") (hydra "0.15.0") (browse-at-remote "0.15.0"))
-;; Version: 0.9.3
+;; Version: 0.10.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -99,18 +99,12 @@
      :bind "D")
     (:name
      "File path"
-     :handler (buffer-file-name)
-     :cache t
+     :handler (file-info--get-file-path)
      :face font-lock-string-face
      :bind "p")
     (:name
      "File dir"
-     :cache t
-     :handler
-     (when (buffer-file-name)
-       (replace-regexp-in-string
-        " " "\\\\\  "
-        (file-name-directory (buffer-file-name))))
+     :handler (file-info--get-file-dir)
      :face font-lock-string-face
      :bind "d")
     (:name
@@ -332,10 +326,9 @@
 
 (defun file-info--get-last-modified-date ()
   "Return last modified date."
-  (when (buffer-file-name)
+  (when-let ((f (file-info--current-file)))
     (format-time-string "%F %T"
-                        (nth
-                         5 (file-attributes (buffer-file-name))))))
+                        (nth 5 (file-attributes f)))))
 
 (defun file-info--get-repository-url ()
   "Return remote repository url via VC."
@@ -500,10 +493,29 @@
   "Return separator between groups of file info."
   "\n")
 
+(defun file-info--current-file ()
+  "Return the relevant file path for the current context.
+In `dired-mode', return the file at point (nil if none).
+Otherwise return `buffer-file-name'."
+  (if (derived-mode-p 'dired-mode)
+      (ignore-errors (dired-get-filename nil t))
+    (buffer-file-name)))
+
+(defun file-info--get-file-path ()
+  "Return full path of current file (dired-aware)."
+  (file-info--current-file))
+
+(defun file-info--get-file-dir ()
+  "Return directory of current file (dired-aware)."
+  (when-let ((f (file-info--current-file)))
+    (replace-regexp-in-string
+     " " "\\\\\ \ "
+     (file-name-directory f))))
+
 (defun file-info--get-file-name ()
   "Get file name."
-  (if (buffer-file-name)
-      (file-name-nondirectory (buffer-file-name))
+  (if-let ((f (file-info--current-file)))
+      (file-name-nondirectory f)
     (buffer-name)))
 
 (defun file-info--set-min-text-length (text)
@@ -614,8 +626,9 @@
 
 (defun file-info--prepare-data ()
   "Prepare local buffer data with caching."
-  (when (and (buffer-file-name) (not file-info--git-p))
-    (setq file-info--git-p (vc-git-root (buffer-file-name)))))
+  (when-let ((f (or (buffer-file-name) default-directory)))
+    (unless file-info--git-p
+      (setq file-info--git-p (vc-git-root f)))))
 
 (defun file-info--get-hydra-bindings ()
   "Get hydra bindings."
