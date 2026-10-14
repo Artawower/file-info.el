@@ -94,7 +94,6 @@
     (:name
      "Project related path"
      :handler (file-info--get-project-related-path)
-     :cache t
      :face font-lock-string-face
      :bind "D")
     (:name
@@ -460,14 +459,14 @@
      (reverse result))))
 
 (defun file-info--get-project-related-path ()
-  "Get project related path."
-  (when-let ((file-name (buffer-file-name))
+  "Get project related path (dired-aware)."
+  (when-let ((file-name (file-info--current-file))
              (root (file-info--get-project-root)))
     (concat
      (replace-regexp-in-string
       " "
       "\\\\\  "
-      (file-relative-name file-name (file-info--get-project-root))))))
+      (file-relative-name file-name root)))))
 
 (defun file-info--get-headline (text)
   "Return headline for TEXT."
